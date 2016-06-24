@@ -1,40 +1,148 @@
 <html> 
 
 <head>
-<title>Steve Wozniak</title>
+<title>Evan Carey</title>
+<link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css">
+<script type="text/javascript" src="assets/js/paper.js"></script>
+<!-- Define inlined PaperScript associate it with myCanvas -->
+
+<script type="text/paperscript" canvas="myCanvas">
+  // Code ported to Paper.js from http://the389.com/9/1/
+// with permission.
+
+var values = {
+  friction: 0.8,
+  timeStep: 0.01,
+  amount: 15,
+  mass: 2,
+  count: 0
+};
+values.invMass = 1 / values.mass;
+
+var path, springs;
+var size = view.size * [1.2, 1];
+
+var Spring = function(a, b, strength, restLength) {
+  this.a = a;
+  this.b = b;
+  this.restLength = restLength || 80;
+  this.strength = strength ? strength : 0.55;
+  this.mamb = values.invMass * values.invMass;
+};
+
+Spring.prototype.update = function() {
+  var delta = this.b - this.a;
+  var dist = delta.length;
+  var normDistStrength = (dist - this.restLength) /
+      (dist * this.mamb) * this.strength;
+  delta.y *= normDistStrength * values.invMass * 0.2;
+  if (!this.a.fixed)
+    this.a.y += delta.y;
+  if (!this.b.fixed)
+    this.b.y -= delta.y;
+};
+
+
+function createPath(strength) {
+  var path = new Path({
+    fillColor: 'black'
+  });
+  springs = [];
+  for (var i = 0; i <= values.amount; i++) {
+    var segment = path.add(new Point(i / values.amount, 0.5) * size);
+    var point = segment.point;
+    if (i == 0 || i == values.amount)
+      point.y += size.height;
+    point.px = point.x;
+    point.py = point.y;
+    // The first two and last two points are fixed:
+    point.fixed = i < 2 || i > values.amount - 2;
+    if (i > 0) {
+      var spring = new Spring(segment.previous.point, point, strength);
+      springs.push(spring);
+    }
+  }
+  path.position.x -= size.width / 4;
+  return path;
+}
+
+function onResize() {
+  if (path)
+    path.remove();
+  size = view.bounds.size * [2, 1];
+  path = createPath(0.1);
+}
+
+function onMouseMove(event) {
+  var location = path.getNearestLocation(event.point);
+  var segment = location.segment;
+  var point = segment.point;
+
+  if (!point.fixed && location.distance < size.height / 4) {
+    var y = event.point.y;
+    point.y += (y - point.y) / 6;
+    if (segment.previous && !segment.previous.fixed) {
+      var previous = segment.previous.point;
+      previous.y += (y - previous.y) / 24;
+    }
+    if (segment.next && !segment.next.fixed) {
+      var next = segment.next.point;
+      next.y += (y - next.y) / 24;
+    }
+  }
+}
+
+function onFrame(event) {
+  updateWave(path);
+}
+
+function updateWave(path) {
+  var force = 1 - values.friction * values.timeStep * values.timeStep;
+  for (var i = 0, l = path.segments.length; i < l; i++) {
+    var point = path.segments[i].point;
+    var dy = (point.y - point.py) * force;
+    point.py = point.y;
+    point.y = Math.max(point.y + dy, 0);
+  }
+
+  for (var j = 0, l = springs.length; j < l; j++) {
+    springs[j].update();
+  }
+  path.smooth({ type: 'continuous' });
+}
+
+function onKeyDown(event) {
+  if (event.key == 'space') {
+    path.fullySelected = !path.fullySelected;
+    path.fillColor = path.fullySelected ? null : 'black';
+  }
+}
+</script>
+
 </head>
+<body bgcolor="#2c3e50">
+  
 
-<body bgcolor="#2ecc71">
-
- <h1 align="center">Steve wozniak</h1>
-
-<img src="http://pmc.com/wp-content/uploads/2014/07/03_PMC_Board_Bio_Wozniak-289x407.png" width="200" style="margin:auto;display:block" ></img>
-
-<p align="center">Steve Wozniak was born in San Jose, California, on August 11, 1950. In partnership with his friend Steve Jobs, Wozniak invented the Apple I computer. The pair founded Apple Computers in 1976 with Ronald Wayne, releasing some of the first personal computers on the market. Wozniak also personally developed the next model, Apple II, which established Apple as a major player in microcomputing.
-
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/pJif4i9NRdI" frameborder="0" allowfullscreen></iframe>
-   <br><br><br><br><br><button><a href="https://en.wikipedia.org/wiki/Steve_Wozniak" target="_blank">Click here to go to the wiki</a>
-       </button>
-
- <h1 align="center">Steve Wozniak's acomplishes.</h1>
-  <ul>
-   <li>Created the Apple 1</li>
-   <li>created >the Apple 2</li>
-   <li>Created the first universal remote</li>
-  </ul>
-    
-  <table border="1">
-  <caption>Steve Wozniak's awards won</caption>
-
-<th>National Medal of Technology and Innovation</th>
-<th>Grace Murray Hopper Award</th>
-<th>Hoover Medal</th>
+<ul class="navbar">
+  <li class="navitem"><a href="page.html"> Background. </a></li>
+  <li class="navitem"><a href="lolol.html"> Talents. </a> </li>
+  <li class="navitem"><a href="Interests.html"> Interests. </a> </li>
+</ul>
 
 
- <a href="page.html">click here to go to another page.</a>
- <a href="lolol.html">click here to go to a website</a>
+
+<div id="homepage" >
+<canvas id="myCanvas" style="z-index:-1;" width="1400px" height="600px"></canvas>
+</div>
 
 
+<div id="text">
+
+ <h1 align="center">Evan Carey</h1>
+<h2 align="center" font="helvetica">Coder, Gamer and Computer nerd. </h2>
+  <button><a href="https://github.com/Brodie0708/Brodie0708.github.io" target="_blank">Click here to go to my reposatory</a></button>
+</div>
+ 
 </body>
 
 </html> 
